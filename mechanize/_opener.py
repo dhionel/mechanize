@@ -412,31 +412,24 @@ class OpenerFactory:
 
 build_opener = OpenerFactory().build_opener
 
-_opener = None
-urlopen_lock = _threading.Lock()
+class _tls(_threading.local):
+	_opener = None
+
+_tls00 = _tls()
+
 def urlopen(url, data=None, timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
-    global _opener
-    if _opener is None:
-        urlopen_lock.acquire()
-        try:
-            if _opener is None:
-                _opener = build_opener()
-        finally:
-            urlopen_lock.release()
-    return _opener.open(url, data, timeout)
+    global _tls00
+    if _tls00._opener is None:
+        _tls00._opener = build_opener()
+    return _tls00._opener.open(url, data, timeout)
 
 def urlretrieve(url, filename=None, reporthook=None, data=None,
                 timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
-    global _opener
-    if _opener is None:
-        urlopen_lock.acquire()
-        try:
-            if _opener is None:
-                _opener = build_opener()
-        finally:
-            urlopen_lock.release()
-    return _opener.retrieve(url, filename, reporthook, data, timeout)
+    global _tls00
+    if _tls00._opener is None:
+        _tls00._opener = build_opener()
+    return _tls00._opener.retrieve(url, filename, reporthook, data, timeout)
 
 def install_opener(opener):
-    global _opener
-    _opener = opener
+    global _tls00
+    _tls00._opener = opener

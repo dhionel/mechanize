@@ -110,16 +110,22 @@ from _response import closeable_response
 # used in User-Agent header sent
 __version__ = sys.version[:3]
 
-_opener = None
+import threading
+
+class _tls(threading.local):
+	_opener = None
+
+_tls00 = _tls()
+
 def urlopen(url, data=None, timeout=_sockettimeout._GLOBAL_DEFAULT_TIMEOUT):
-    global _opener
-    if _opener is None:
-        _opener = build_opener()
-    return _opener.open(url, data, timeout)
+    global _tls00
+    if _tls00._opener is None:
+        _tls00._opener = build_opener()
+    return _tls00._opener.open(url, data, timeout)
 
 def install_opener(opener):
-    global _opener
-    _opener = opener
+    global _tls00
+    _tls00._opener = opener
 
 # copied from cookielib.py
 _cut_port_re = re.compile(r":\d+$")
